@@ -8,7 +8,7 @@ BIN_PATH=bin
 ## specifies the registry to push to
 DOCKER_REGISTRY_HOSTNAME=docker.io
 ## specifies docker.io/THIS/image:tag
-DOCKER_IMAGE_NAMESPACE=zephinzer
+DOCKER_IMAGE_NAMESPACE=usvc
 ## specifies docker.io/namespace/THIS:tag - align with $(BIN_NAME) for less confusion
 DOCKER_IMAGE_NAME=reflection
 ## specifies the absolute path to the directory containing the .git directory
@@ -17,7 +17,7 @@ GIT_ROOT=$(CURDIR)
 # include Makefile.properties
 
 ## starts the application for development with live-reload
-start:
+start: generate
 	@godev
 ## installs the dependencies using go modules
 deps:
@@ -32,7 +32,7 @@ clean:
 	-@rm -rf $(CURDIR)/server.key
 	-@docker rmi $(DOCKER_IMAGE_NAMESPACE)/$(DOCKER_IMAGE_NAME)
 ## compiles binaries for all systems
-compile:
+compile: generate
 	@$(MAKE) compile.linux
 	@$(MAKE) compile.macos
 	@$(MAKE) compile.windows
@@ -51,6 +51,9 @@ compile.windows:
 		go build -a -ldflags "-extldflags -static" -o $(CURDIR)/$(BIN_PATH)/$(BIN_NAME)-${GOOS}-${GOARCH}${BIN_EXT}
 	@chmod +x $(CURDIR)/$(BIN_PATH)/$(BIN_NAME)-${GOOS}-${GOARCH}${BIN_EXT}
 	@sha256sum $(CURDIR)/$(BIN_PATH)/$(BIN_NAME)-${GOOS}-${GOARCH}${BIN_EXT} | cut -d " " -f 1 > $(CURDIR)/$(BIN_PATH)/$(BIN_NAME)-${GOOS}-${GOARCH}${BIN_EXT}.sha256
+generate:
+	@git submodule init
+	@go generate
 ## dockerisation for production
 docker:
 	@$(MAKE) .docker STAGE="production"
@@ -80,7 +83,7 @@ docker.prepare: docker
 	@docker tag \
 		$(DOCKER_REGISTRY_HOSTNAME)/$(DOCKER_IMAGE_NAMESPACE)/$(DOCKER_IMAGE_NAME):$$($(MAKE) version.get | grep '[0-9]*\.[0-9]*\.[0-9]*') \
 		$(DOCKER_REGISTRY_HOSTNAME)/$(DOCKER_IMAGE_NAMESPACE)/$(DOCKER_IMAGE_NAME):$$($(MAKE) version.get | grep '[0-9]*\.[0-9]*\.[0-9]*')-$$(git rev-list -1 HEAD)
-publish.dockerhub: docker.prepare
+release.dockerhub: docker.prepare
 	@$(MAKE) log.info MSG="pushing image $(DOCKER_REGISTRY_HOSTNAME)/$(DOCKER_IMAGE_NAMESPACE)/$(DOCKER_IMAGE_NAME):latest"
 	@docker push $(DOCKER_REGISTRY_HOSTNAME)/$(DOCKER_IMAGE_NAMESPACE)/$(DOCKER_IMAGE_NAME):latest
 	@$(MAKE) log.info MSG="pushing image $(DOCKER_REGISTRY_HOSTNAME)/$(DOCKER_IMAGE_NAMESPACE)/$(DOCKER_IMAGE_NAME):$$($(MAKE) version.get | grep '[0-9]*\.[0-9]*\.[0-9]*')"

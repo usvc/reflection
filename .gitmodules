@@ -1,0 +1,3 @@
+[submodule "generators/version"]
+	path = generators/version
+	url = https://github.com/usvc/go-generate-version.git

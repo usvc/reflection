@@ -38,9 +38,12 @@ ARG CGO_ENABLED=0
 ARG GO111MODULE=on
 ## use something GOPATH/GOROOT friendly - don't anger the gods
 WORKDIR /go/src/${BIN_NAME}
-## copy all we have so far
+## process dependencies first to take advantage of caching
+COPY ./go.mod /go/src/go.mod
+COPY ./go.sum /go/src/go.sum
+RUN make deps
+## process everything else
 COPY . /go/src/${BIN_NAME}
-## do the build
 RUN make compile.linux
 ## generate a hash
 RUN sha256sum ${BIN_PATH}/${BIN_NAME}-${GOOS}-${GOARCH}${BIN_EXT} | cut -d " " -f 1 > ${BIN_PATH}/${BIN_NAME}-${GOOS}-${GOARCH}${BIN_EXT}.sha256

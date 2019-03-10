@@ -10,6 +10,8 @@ You should find the `./bin` directory populated with binaries and their SHA sums
 
 - `--port int`: Defines the port for the HTTP server to run on. The TLS version will run on this port plus one. Example: `./bin/reflection --port 1111` will make the server listen on port 1111 for HTTP and 1112 for HTTPS
 
+- `--version`: Displays the version output
+
 ## Development
 Run `make tlscerts` to generate the server certificate and key.
 
@@ -24,3 +26,5 @@ curl -k \
   -d "hi there!" \
   'https://localhost:8081/some/path?some=variables';
 ```
+
+# Cheers
