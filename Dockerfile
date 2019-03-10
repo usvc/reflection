@@ -39,8 +39,9 @@ ARG GO111MODULE=on
 ## use something GOPATH/GOROOT friendly - don't anger the gods
 WORKDIR /go/src/${BIN_NAME}
 ## process dependencies first to take advantage of caching
-COPY ./go.mod /go/src/go.mod
-COPY ./go.sum /go/src/go.sum
+COPY ./Makefile /go/src/${BIN_NAME}/Makefile
+COPY ./go.mod /go/src/${BIN_NAME}/go.mod
+COPY ./go.sum /go/src/${BIN_NAME}/go.sum
 RUN make deps
 ## process everything else
 COPY . /go/src/${BIN_NAME}
