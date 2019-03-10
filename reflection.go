@@ -31,6 +31,7 @@ type MetaFields struct {
 	Host       string `json:"host"`
 	RemoteAddr string `json:"remote_addr"`
 	Timestamp  string `json:"timestamp"`
+	UUID       string `json:"uuid"`
 }
 
 // Reflection holds the reflection information
@@ -68,14 +69,17 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	reflection.Request.Params = r.URL.Query()
 	reflection.Request.Path = r.URL.Path
 
+	reflection.Meta.UUID = w.Header().Get("Request-ID")
 	reflection.Meta.Host = r.Host
 	reflection.Meta.RemoteAddr = r.RemoteAddr
 	reflection.Meta.Timestamp = time.Now().Format("2006-01-02T15:04:05-0700")
 
+	w.Header().Set("Content-Type", "application/json")
+
 	if response, err := json.Marshal(reflection); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
-		w.Write([]byte("something went wrong"))
+		w.Write([]byte("\"something went wrong\""))
 	} else {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(fmt.Sprintf("%s", response)))

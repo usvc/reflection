@@ -8,6 +8,8 @@ import (
 	"os"
 	"path"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 const serverTLSKeyFile = "server.key"
@@ -95,11 +97,13 @@ func shouldEnableTLS() bool {
 
 func withLogging(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		requestID := uuid.New().String()
 		protocolStub := "http"
 		if r.TLS != nil {
 			protocolStub = fmt.Sprintf("%ss", protocolStub)
 		}
-		log.Printf("%s %s %s://%s%s\n", r.Method, r.Proto, protocolStub, r.Host, r.RequestURI)
+		log.Printf("%s %s [id:%s] %s://%s%s\n", r.Method, r.Proto, requestID, protocolStub, r.Host, r.RequestURI)
+		w.Header().Add("Request-ID", requestID)
 		next.ServeHTTP(w, r)
 	}
 }
